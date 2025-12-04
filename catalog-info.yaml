@@ -1,0 +1,25 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: backstage-templates
+  description: Software scaffolding templates for AWS projects
+  tags:
+    - backstage
+    - templates
+    - scaffolding
+    - aws
+  annotations:
+    github.com/project-slug: backstage-beach/backstage-templates
+    backstage.io/techdocs-ref: dir:.
+  links:
+    - url: https://github.com/backstage-beach/backstage-templates
+      title: GitHub Repository
+      icon: github
+    - url: https://backstage.io/docs/features/software-templates/
+      title: Backstage Templates Documentation
+      icon: docs
+spec:
+  type: template-library
+  lifecycle: experimental
+  owner: platform-team
+  system: backstage-beach-portal
