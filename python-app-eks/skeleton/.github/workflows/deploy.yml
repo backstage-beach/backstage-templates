@@ -1,0 +1,141 @@
+name: Deploy to EKS
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: sa-east-1
+  APP_NAME: ${{ values.name }}
+  NAMESPACE: ${{ values.namespace }}
+
+jobs:
+  deploy:
+    name: Deploy to EKS via ArgoCD
+    runs-on: ubuntu-latest
+    environment: ${{ "{{" }} inputs.environment {{ "}}" }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ "{{" }} secrets.AWS_ROLE_ARN {{ "}}" }}
+          aws-region: ${{ "{{" }} env.AWS_REGION {{ "}}" }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --name backstage-eks-${{ "{{" }} inputs.environment {{ "}}" }} \
+            --region ${{ "{{" }} env.AWS_REGION {{ "}}" }}
+
+      - name: Install ArgoCD CLI
+        run: |
+          VERSION=$(curl --silent "https://api.github.com/repos/argoproj/argo-cd/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+          curl -sSL -o /tmp/argocd-linux-amd64 "https://github.com/argoproj/argo-cd/releases/download/${VERSION}/argocd-linux-amd64"
+          sudo install -m 555 /tmp/argocd-linux-amd64 /usr/local/bin/argocd
+          rm /tmp/argocd-linux-amd64
+
+      - name: Retrieve credentials from AWS Secrets Manager
+        id: get-secrets
+        run: |
+          SECRET_NAME="backstage/${{ "{{" }} inputs.environment {{ "}}" }}/credentials"
+          
+          SECRET_VALUE=$(aws secretsmanager get-secret-value \
+            --secret-id "$SECRET_NAME" \
+            --region ${{ "{{" }} env.AWS_REGION {{ "}}" }} \
+            --query SecretString \
+            --output text)
+          
+          ARGOCD_PASSWORD=$(echo "$SECRET_VALUE" | jq -r '.ARGOCD_ADMIN_PASSWORD')
+          GITHUB_TOKEN=$(echo "$SECRET_VALUE" | jq -r '.GITHUB_ARGOCD_TOKEN')
+          
+          echo "::add-mask::$ARGOCD_PASSWORD"
+          echo "::add-mask::$GITHUB_TOKEN"
+          
+          echo "argocd_password=$ARGOCD_PASSWORD" >> $GITHUB_OUTPUT
+          echo "github_token=$GITHUB_TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Login to ArgoCD
+        env:
+          ARGOCD_PASSWORD: ${{ "{{" }} steps.get-secrets.outputs.argocd_password {{ "}}" }}
+        run: |
+          ARGOCD_SERVER="argocd.demotw.com"
+          argocd login "$ARGOCD_SERVER" \
+            --username admin \
+            --password "$ARGOCD_PASSWORD" \
+            --insecure
+
+      - name: Add Git repository to ArgoCD
+        env:
+          GITHUB_TOKEN: ${{ "{{" }} steps.get-secrets.outputs.github_token {{ "}}" }}
+        run: |
+          REPO_URL="https://github.com/backstage-beach/${{ "{{" }} github.event.repository.name {{ "}}" }}"
+          
+          if argocd repo list | grep -q "$REPO_URL"; then
+            echo "Repository already exists, updating..."
+            argocd repo rm "$REPO_URL" || true
+          fi
+          
+          argocd repo add "$REPO_URL" \
+            --username git \
+            --password "$GITHUB_TOKEN" \
+            --insecure-skip-server-verification
+
+      - name: Create namespace
+        run: |
+          kubectl create namespace ${{ "{{" }} env.NAMESPACE {{ "}}" }} --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create ArgoCD Application
+        run: |
+          REPO_URL="https://github.com/backstage-beach/${{ "{{" }} github.event.repository.name {{ "}}" }}"
+          
+          if argocd app get "${{ "{{" }} env.APP_NAME {{ "}}" }}" &>/dev/null; then
+            echo "Application exists, updating..."
+            argocd app set "${{ "{{" }} env.APP_NAME {{ "}}" }}" \
+              --repo "$REPO_URL" \
+              --path "charts/${{ "{{" }} env.APP_NAME {{ "}}" }}" \
+              --dest-namespace "${{ "{{" }} env.NAMESPACE {{ "}}" }}" \
+              --revision HEAD
+          else
+            argocd app create "${{ "{{" }} env.APP_NAME {{ "}}" }}" \
+              --repo "$REPO_URL" \
+              --path "charts/${{ "{{" }} env.APP_NAME {{ "}}" }}" \
+              --dest-server https://kubernetes.default.svc \
+              --dest-namespace "${{ "{{" }} env.NAMESPACE {{ "}}" }}" \
+              --revision HEAD \
+              --sync-policy automated \
+              --auto-prune \
+              --self-heal
+          fi
+
+      - name: Sync ArgoCD Application
+        run: |
+          argocd app sync "${{ "{{" }} env.APP_NAME {{ "}}" }}" --prune
+          argocd app wait "${{ "{{" }} env.APP_NAME {{ "}}" }}" --health --timeout 300
+
+      - name: Verify deployment
+        run: |
+          echo "### 🚀 Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Application**: \`${{ "{{" }} env.APP_NAME {{ "}}" }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Namespace**: \`${{ "{{" }} env.NAMESPACE {{ "}}" }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**ArgoCD**: [View Application](https://argocd.demotw.com/applications/${{ "{{" }} env.APP_NAME {{ "}}" }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          kubectl get all -n ${{ "{{" }} env.NAMESPACE {{ "}}" }}

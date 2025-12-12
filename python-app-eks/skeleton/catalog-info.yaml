@@ -1,0 +1,28 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.name }}
+  description: ${{ values.description }}
+  tags:
+    - python
+    - aws
+    - eks
+    - flask
+  annotations:
+    github.com/project-slug: backstage-beach/${{ values.name }}
+    backstage.io/techdocs-ref: dir:.
+    backstage.io/kubernetes-id: ${{ values.name }}
+    backstage.io/kubernetes-namespace: ${{ values.namespace }}
+    argocd/app-name: ${{ values.name }}
+  links:
+    - url: https://github.com/backstage-beach/${{ values.name }}
+      title: GitHub Repository
+      icon: github
+    - url: https://argocd.demotw.com/applications/${{ values.name }}
+      title: ArgoCD Application
+      icon: dashboard
+spec:
+  type: service
+  lifecycle: experimental
+  owner: ${{ values.owner }}
+  system: backstage-beach-portal

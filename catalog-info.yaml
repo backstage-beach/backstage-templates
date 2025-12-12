@@ -1,4 +1,16 @@
 apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: backstage-templates
+  description: Software scaffolding templates for AWS projects
+  annotations:
+    github.com/project-slug: backstage-beach/backstage-templates
+spec:
+  type: url
+  targets:
+    - ./python-app-eks/template.yaml
+---
+apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: backstage-templates
@@ -23,3 +35,4 @@ spec:
   lifecycle: experimental
   owner: platform-team
   system: backstage-beach-portal
+
