@@ -2,9 +2,9 @@
 replicaCount: ${{ values.replicas }}
 
 image:
-  # AWS ECR repository
-  repository: 160071257600.dkr.ecr.sa-east-1.amazonaws.com/backstage-lab/${{ values.name }}
-  pullPolicy: IfNotPresent
+  # GitHub Container Registry
+  repository: ghcr.io/backstage-beach/${{ values.name }}
+  pullPolicy: Always
   tag: "latest"
 
 imagePullSecrets: []
