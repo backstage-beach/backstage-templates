@@ -26,7 +26,7 @@ jobs:
   deploy:
     name: Deploy to EKS via ArgoCD
     runs-on: ubuntu-latest
-    environment: ${{ "{{" }} inputs.environment {{ "}}" }}
+    environment: ${{ '${{' }} inputs.environment }}
     
     steps:
     steps:
@@ -42,11 +42,11 @@ jobs:
 
       - name: Add Git repository to ArgoCD
         env:
-          ARGOCD_SERVER: ${{ "{{" }} secrets.ARGOCD_SERVER {{ "}}" }}
-          ARGOCD_AUTH_TOKEN: ${{ "{{" }} secrets.ARGOCD_AUTH_TOKEN {{ "}}" }}
-          GITHUB_TOKEN: ${{ "{{" }} secrets.ARGOCD_GITHUB_TOKEN {{ "}}" }}
+          ARGOCD_SERVER: ${{ '${{' }} secrets.ARGOCD_SERVER }}
+          ARGOCD_AUTH_TOKEN: ${{ '${{' }} secrets.ARGOCD_AUTH_TOKEN }}
+          GITHUB_TOKEN: ${{ '${{' }} secrets.ARGOCD_GITHUB_TOKEN }}
         run: |
-          REPO_URL="https://github.com/backstage-beach/${{ "{{" }} github.event.repository.name {{ "}}" }}"
+          REPO_URL="https://github.com/backstage-beach/${{ '${{' }} github.event.repository.name }}
           
           # Add repo (idempotent check not strictly needed if we assume failure means exists, or we can list)
           # Using --upsert to handle updates
@@ -59,16 +59,16 @@ jobs:
 
       - name: Create ArgoCD Application
         env:
-          ARGOCD_SERVER: ${{ "{{" }} secrets.ARGOCD_SERVER {{ "}}" }}
-          ARGOCD_AUTH_TOKEN: ${{ "{{" }} secrets.ARGOCD_AUTH_TOKEN {{ "}}" }}
+          ARGOCD_SERVER: ${{ '${{' }} secrets.ARGOCD_SERVER }}
+          ARGOCD_AUTH_TOKEN: ${{ '${{' }} secrets.ARGOCD_AUTH_TOKEN }}
         run: |
-          REPO_URL="https://github.com/backstage-beach/${{ "{{" }} github.event.repository.name {{ "}}" }}"
+          REPO_URL="https://github.com/backstage-beach/${{ '${{' }} github.event.repository.name }}
           
-          argocd app create "${{ "{{" }} env.APP_NAME {{ "}}" }}" \
+          argocd app create "${{ '${{' }} env.APP_NAME }}" \
             --repo "$REPO_URL" \
-            --path "charts/${{ "{{" }} env.APP_NAME {{ "}}" }}" \
+            --path "charts/${{ '${{' }} env.APP_NAME }}" \
             --dest-server https://kubernetes.default.svc \
-            --dest-namespace "${{ "{{" }} env.NAMESPACE {{ "}}" }}" \
+            --dest-namespace "${{ '${{' }} env.NAMESPACE }}" \
             --revision HEAD \
             --sync-policy automated \
             --sync-option CreateNamespace=true \
@@ -79,22 +79,22 @@ jobs:
 
       - name: Sync ArgoCD Application
         env:
-          ARGOCD_SERVER: ${{ "{{" }} secrets.ARGOCD_SERVER {{ "}}" }}
-          ARGOCD_AUTH_TOKEN: ${{ "{{" }} secrets.ARGOCD_AUTH_TOKEN {{ "}}" }}
+          ARGOCD_SERVER: ${{ '${{' }} secrets.ARGOCD_SERVER }}
+          ARGOCD_AUTH_TOKEN: ${{ '${{' }} secrets.ARGOCD_AUTH_TOKEN }}
         run: |
-          argocd app sync "${{ "{{" }} env.APP_NAME {{ "}}" }}" --prune --grpc-web
-          argocd app wait "${{ "{{" }} env.APP_NAME {{ "}}" }}" --health --timeout 300 --grpc-web
+          argocd app sync "${{ '${{' }} env.APP_NAME }}" --prune --grpc-web
+          argocd app wait "${{ '${{' }} env.APP_NAME }}" --health --timeout 300 --grpc-web
 
       - name: Verify deployment
         env:
-          ARGOCD_SERVER: ${{ "{{" }} secrets.ARGOCD_SERVER {{ "}}" }}
-          ARGOCD_AUTH_TOKEN: ${{ "{{" }} secrets.ARGOCD_AUTH_TOKEN {{ "}}" }}
+          ARGOCD_SERVER: ${{ '${{' }} secrets.ARGOCD_SERVER }}
+          ARGOCD_AUTH_TOKEN: ${{ '${{' }} secrets.ARGOCD_AUTH_TOKEN }}
         run: |
           echo "### 🚀 Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Application**: \`${{ "{{" }} env.APP_NAME {{ "}}" }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Namespace**: \`${{ "{{" }} env.NAMESPACE {{ "}}" }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Application**: \`${{ '${{' }} env.APP_NAME }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Namespace**: \`${{ '${{' }} env.NAMESPACE }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**ArgoCD**: [View Application](https://${{ "{{" }} secrets.ARGOCD_SERVER {{ "}}" }}/applications/${{ "{{" }} env.APP_NAME {{ "}}" }})" >> $GITHUB_STEP_SUMMARY
+          echo "**ArgoCD**: [View Application](https://${{ '${{' }} secrets.ARGOCD_SERVER }}/applications/${{ '${{' }} env.APP_NAME }})" >> $GITHUB_STEP_SUMMARY
           
-          argocd app get "${{ "{{" }} env.APP_NAME {{ "}}" }}" --grpc-web
+          argocd app get "${{ '${{' }} env.APP_NAME }}" --grpc-web

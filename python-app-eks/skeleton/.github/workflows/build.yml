@@ -28,23 +28,23 @@ jobs:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ${{ '${{' }} env.REGISTRY }}
+          username: ${{ '${{' }} github.actor }}
+          password: ${{ '${{' }} secrets.GITHUB_TOKEN }}
 
       - name: Generate image tag
         id: image-tag
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
-          BRANCH_NAME="${{ github.ref_name }}"
+          BRANCH_NAME="${{ '${{' }} github.ref_name }}"
           # Sanitize branch name
           BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9._-]/-/g')
           
-          TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${BRANCH_NAME}-${SHORT_SHA}"
-          TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${SHORT_SHA}"
+          TAGS="${{ '${{' }} env.REGISTRY }}/${{ '${{' }} env.IMAGE_NAME }}:${BRANCH_NAME}-${SHORT_SHA}"
+          TAGS="${TAGS},${{ '${{' }} env.REGISTRY }}/${{ '${{' }} env.IMAGE_NAME }}:sha-${SHORT_SHA}"
           
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
-            TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          if [[ "${{ '${{' }} github.ref_name }}" == "main" ]]; then
+            TAGS="${TAGS},${{ '${{' }} env.REGISTRY }}/${{ '${{' }} env.IMAGE_NAME }}:latest"
             TAG="main-${SHORT_SHA}"
           else
             TAG="${BRANCH_NAME}-${SHORT_SHA}"
@@ -61,11 +61,11 @@ jobs:
         with:
           context: app
           push: true
-          tags: ${{ steps.image-tag.outputs.tags }}
+          tags: ${{ '${{' }} steps.image-tag.outputs.tags }}
           labels: |
-            org.opencontainers.image.version=${{ steps.image-tag.outputs.primary-tag }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.created=${{ steps.image-tag.outputs.build-date }}
+            org.opencontainers.image.version=${{ '${{' }} steps.image-tag.outputs.primary-tag }}
+            org.opencontainers.image.revision=${{ '${{' }} github.sha }}
+            org.opencontainers.image.created=${{ '${{' }} steps.image-tag.outputs.build-date }}
 
       - name: Summary
         run: |
