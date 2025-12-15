@@ -134,6 +134,7 @@ spec:
         defaultBranch: main
         repoVisibility: public
         requiredApprovingReviewCount: 0
+        gitCommitMessage: 'Initial commit [skip ci]'
 
     # Step 3: Trigger Deployment
     - id: trigger-deploy
