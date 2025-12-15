@@ -123,6 +123,7 @@ jobs:
         env:
           ARGOCD_SERVER: ${{ '${{' }} secrets.ARGOCD_SERVER }}
           ARGOCD_AUTH_TOKEN: ${{ '${{' }} secrets.ARGOCD_AUTH_TOKEN }}
+          GITHUB_TOKEN: ${{ '${{' }} secrets.ARGOCD_GITHUB_TOKEN }}
         run: |
           REPO_URL="https://github.com/backstage-beach/${{ '${{' }} github.event.repository.name }}"
           
@@ -137,7 +138,12 @@ jobs:
             --auto-prune \
             --self-heal \
             --upsert \
-            --grpc-web
+            --grpc-web \
+            --parameter imageCredentials.create=true \
+            --parameter imageCredentials.registry=ghcr.io \
+            --parameter imageCredentials.username=${{ '${{' }} github.repository_owner }} \
+            --parameter imageCredentials.githubToken="$GITHUB_TOKEN" \
+            --parameter imageCredentials.email=noreply@github.com
 
       - name: Sync ArgoCD Application
         env:

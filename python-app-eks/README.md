@@ -11,6 +11,17 @@ Backstage software template for creating Python Flask applications deployed to A
 - 📚 **TechDocs** - MkDocs documentation ready for Backstage
 - 🚀 **CI/CD Workflows** - GitHub Actions for build and deploy
 
+## Prerequisites
+
+Before creating an application, ensure the `ghcr-secret` exists in your target namespace (or default) to allow pulling images from GitHub Container Registry.
+
+```bash
+kubectl create secret docker-registry ghcr-secret \
+  --docker-server=ghcr.io \
+  --docker-username=<GITHUB_USER> \
+  --docker-password=<GITHUB_PAT>
+```
+
 ## Parameters
 
 | Parameter | Required | Default | Description |

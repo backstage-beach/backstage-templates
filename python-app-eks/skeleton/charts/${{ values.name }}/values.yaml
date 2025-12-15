@@ -7,6 +7,13 @@ image:
   pullPolicy: Always
   tag: "latest"
 
+imageCredentials:
+  create: false
+  registry: ghcr.io
+  username: ""
+  githubToken: ""
+  email: ""
+
 imagePullSecrets:
   - name: ghcr-secret
 nameOverride: ""
