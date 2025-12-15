@@ -157,7 +157,6 @@ jobs:
           ARGOCD_SERVER: ${{ '${{' }} secrets.ARGOCD_SERVER }}
           ARGOCD_AUTH_TOKEN: ${{ '${{' }} secrets.ARGOCD_AUTH_TOKEN }}
         run: |
-          argocd app sync "${{ '${{' }} env.APP_NAME }}" --prune --grpc-web
           argocd app wait "${{ '${{' }} env.APP_NAME }}" --health --timeout 300 --grpc-web
 
       - name: Verify deployment
