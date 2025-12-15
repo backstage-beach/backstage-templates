@@ -140,7 +140,7 @@ spec:
       name: Trigger Automated CI/CD
       action: github:actions:dispatch
       input:
-        repoUrl: ${{ steps['publish'].output.remoteUrl }}
+        repoUrl: ${{ parameters.repoUrl }}
         workflowId: ci-cd.yml
         branchOrTagName: 'main'
         workflowInputs:

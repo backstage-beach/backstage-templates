@@ -11,4 +11,4 @@ ENV PORT=${{ values.container_port }}
 
 EXPOSE ${{ values.container_port }}
 
-CMD ["gunicorn", "--bind", "0.0.0.0:${{ values.container_port }}", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:${{ values.container_port }}", "--log-level", "debug", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
