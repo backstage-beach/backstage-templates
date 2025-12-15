@@ -94,6 +94,20 @@ spec:
             allowedOwners:
               - backstage-beach
 
+    - title: Deployment Configuration
+      required:
+        - environment
+      properties:
+        environment:
+          title: Environment
+          type: string
+          description: Target environment for initial deployment
+          default: dev
+          enum:
+            - dev
+            - staging
+            - prod
+
   steps:
     # Step 1: Fetch and render the template skeleton
     - id: fetch
@@ -121,7 +135,18 @@ spec:
         repoVisibility: public
         requiredApprovingReviewCount: 0
 
-    # Step 3: Register in Backstage catalog
+    # Step 3: Trigger Deployment
+    - id: trigger-deploy
+      name: Trigger Deployment
+      action: github:actions:dispatch
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        workflowId: deploy.yml
+        branchOrTagName: 'main'
+        inputs:
+          environment: ${{ parameters.environment }}
+
+    # Step 4: Register in Backstage catalog
     - id: register
       name: Register Component
       action: catalog:register
@@ -143,16 +168,12 @@ spec:
           
           **Repository**: ${{ steps['publish'].output.remoteUrl }}
           
-          ### Deploy to EKS with ArgoCD
+          ### 🚀 Deployment Started
+          
+          The **Deploy to EKS** workflow has been triggered automatically for environment: **${{ parameters.environment }}**.
           
           1. Go to your new repository
-          2. Navigate to **Actions** → **Deploy to EKS**
-          3. Click **Run workflow**
-          
-          This will:
-          - Register the repo in ArgoCD
-          - Create the ArgoCD Application
-          - Deploy to EKS namespace `${{ parameters.namespace }}`
+          2. Navigate to **Actions** to see the progress.
           
           ### View in ArgoCD
           
