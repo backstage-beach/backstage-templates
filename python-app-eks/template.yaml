@@ -137,13 +137,13 @@ spec:
 
     # Step 3: Trigger Deployment
     - id: trigger-deploy
-      name: Trigger Deployment
+      name: Trigger Automated CI/CD
       action: github:actions:dispatch
       input:
-        repoUrl: ${{ parameters.repoUrl }}
-        workflowId: deploy.yml
+        repoUrl: ${{ steps['publish'].output.remoteUrl }}
+        workflowId: ci-cd.yml
         branchOrTagName: 'main'
-        inputs:
+        workflowInputs:
           environment: ${{ parameters.environment }}
 
     # Step 4: Register in Backstage catalog
