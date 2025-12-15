@@ -110,7 +110,7 @@ jobs:
           ARGOCD_AUTH_TOKEN: ${{ '${{' }} secrets.ARGOCD_AUTH_TOKEN }}
           GITHUB_TOKEN: ${{ '${{' }} secrets.ARGOCD_GITHUB_TOKEN }}
         run: |
-          REPO_URL="https://github.com/backstage-beach/${{ '${{' }} github.event.repository.name }}
+          REPO_URL="https://github.com/backstage-beach/${{ '${{' }} github.event.repository.name }}"
           
           argocd repo add "$REPO_URL" \
             --username git \
@@ -124,7 +124,7 @@ jobs:
           ARGOCD_SERVER: ${{ '${{' }} secrets.ARGOCD_SERVER }}
           ARGOCD_AUTH_TOKEN: ${{ '${{' }} secrets.ARGOCD_AUTH_TOKEN }}
         run: |
-          REPO_URL="https://github.com/backstage-beach/${{ '${{' }} github.event.repository.name }}
+          REPO_URL="https://github.com/backstage-beach/${{ '${{' }} github.event.repository.name }}"
           
           argocd app create "${{ '${{' }} env.APP_NAME }}" \
             --repo "$REPO_URL" \
