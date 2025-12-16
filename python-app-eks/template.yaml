@@ -123,6 +123,8 @@ spec:
           container_port: ${{ parameters.container_port }}
           namespace: ${{ parameters.namespace }}
           replicas: ${{ parameters.replicas }}
+          repoOwner: ${{ (parameters.repoUrl | parseRepoUrl).owner }}
+          repoName: ${{ (parameters.repoUrl | parseRepoUrl).repo }}
 
     # Step 2: Publish to GitHub
     - id: publish

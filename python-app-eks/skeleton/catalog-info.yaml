@@ -9,7 +9,7 @@ metadata:
     - eks
     - flask
   annotations:
-    github.com/project-slug: backstage-beach/${{ values.name }}
+    github.com/project-slug: ${{ values.repoOwner }}/${{ values.repoName }}
     backstage.io/techdocs-ref: dir:.
     backstage.io/kubernetes-id: ${{ values.name }}
     backstage.io/kubernetes-namespace: ${{ values.namespace }}
