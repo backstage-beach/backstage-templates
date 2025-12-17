@@ -20,8 +20,8 @@ on:
           - prod
 
 permissions:
-  contents: read
-  packages: write
+  contents: write  # For creating tags, pushing changes if needed
+  packages: write  # For pushing to GitHub Container Registry (GHCR)
 
 env:
   REGISTRY: ghcr.io
