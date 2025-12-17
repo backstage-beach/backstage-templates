@@ -138,7 +138,18 @@ spec:
         requiredApprovingReviewCount: 0
         gitCommitMessage: 'Initial commit [skip ci]'
 
-    # Step 3: Trigger Deployment
+    # Step 3: Configure Repository Workflow Permissions
+    - id: configure-permissions
+      name: Configure Workflow Permissions
+      action: github:api
+      input:
+        url: '/repos/${{ (parameters.repoUrl | parseRepoUrl).owner }}/${{ (parameters.repoUrl | parseRepoUrl).repo }}/actions/permissions/workflow'
+        method: PUT
+        body:
+          default_workflow_permissions: write
+          can_approve_pull_request_reviews: false
+
+    # Step 4: Trigger Deployment
     - id: trigger-deploy
       name: Trigger Automated CI/CD
       action: github:actions:dispatch
@@ -149,7 +160,7 @@ spec:
         workflowInputs:
           environment: ${{ parameters.environment }}
 
-    # Step 4: Register in Backstage catalog
+    # Step 5: Register in Backstage catalog
     - id: register
       name: Register Component
       action: catalog:register
@@ -171,6 +182,11 @@ spec:
           
           **Repository**: ${{ steps['publish'].output.remoteUrl }}
           
+          ### ✅ Repository Configuration Complete
+          
+          - Workflow permissions have been configured to allow GitHub Actions to push Docker images to GHCR
+          - CI/CD pipeline is ready to deploy your application
+          
           ### 🚀 Deployment Started
           
           The **Deploy to EKS** workflow has been triggered automatically for environment: **${{ parameters.environment }}**.
@@ -182,3 +198,4 @@ spec:
           
           After deployment, view your app at:
           `https://argocd.demotw.com/applications/${{ parameters.name }}`
+
